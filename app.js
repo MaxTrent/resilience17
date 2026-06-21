@@ -6,12 +6,9 @@ const fs = require('fs');
 const { createServer } = require('@app-core/server');
 const { createConnection } = require('@app-core/mongoose');
 const { createQueue } = require('@app-core/queue');
+const { appLogger } = require('@app-core/logger');
 
 const canLogEndpointInformation = process.env.CAN_LOG_ENDPOINT_INFORMATION;
-
-createConnection({
-  uri: process.env.MONGODB_URI,
-});
 
 createQueue();
 
@@ -23,7 +20,7 @@ const server = createServer({
 
 const ENDPOINT_CONFIGS = [
   {
-    path: './endpoints/onboarding/',
+    path: './endpoints/creator-cards/',
   },
 ];
 
@@ -46,7 +43,7 @@ function logEndpointMetaData(endpointConfigs) {
         entry.display_name = `can ${entry.name}`;
 
         if (options?.pathPrefix) {
-          entry.endpoint = `${options.pathPrefix}${entry.endpoint}`;
+          entry.endpoint = `${options.pathPrefix}${handler.path}`;
           entry.name = `${entry.name} (${options.pathPrefix.replace('/', '')})`;
         }
 
@@ -86,4 +83,15 @@ ENDPOINT_CONFIGS.forEach((config) => {
   setupEndpointHandlers(config.path, config.options);
 });
 
-server.startServer();
+async function startApplication() {
+  await createConnection({
+    uri: process.env.MONGODB_URI,
+  });
+
+  server.startServer();
+}
+
+startApplication().catch((error) => {
+  appLogger.errorX(error, 'application-startup-error');
+  process.exit(1);
+});
