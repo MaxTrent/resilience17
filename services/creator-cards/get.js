@@ -1,11 +1,9 @@
-const validator = require('@app-core/validator');
 const CreatorCardRepository = require('@app/repository/creator-card');
 const { CreatorCardMessages } = require('@app/messages');
 const { throwAppError } = require('@app-core/errors');
 const {
   ACTIVE_CARD_QUERY,
   CUSTOM_ERROR_CODES,
-  getCardQuerySpec,
   serializeCreatorCard,
 } = require('./shared');
 
@@ -23,13 +21,6 @@ async function getCreatorCardBySlug({ slug, accessCode }) {
 
   if (card.status === 'draft') {
     throwAppError(CreatorCardMessages.NOT_FOUND, CUSTOM_ERROR_CODES.DRAFT_NOT_FOUND);
-  }
-
-  if (card.access_type === 'private') {
-    validator.validate(
-      typeof accessCode === 'undefined' ? {} : { access_code: accessCode },
-      getCardQuerySpec
-    );
   }
 
   if (card.access_type === 'private' && !accessCode) {

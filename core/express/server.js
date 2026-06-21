@@ -26,6 +26,7 @@ function Server(serverConfig = {}) {
   const app = express();
 
   const errorCodeMappings = ERROR_STATUS_CODE_MAPPING;
+  const responseErrorCodes = new Set(['SL02', 'AC01', 'AC05', 'NF01', 'NF02', 'AC03', 'AC04']);
 
   function sanitizeInputObject(inputObject) {
     let objectClone = {};
@@ -246,6 +247,9 @@ function Server(serverConfig = {}) {
         responseComponents.body.message = error.isApplicationError
           ? error.message
           : 'Some error occured.';
+        responseComponents.body.code = responseErrorCodes.has(error.errorCode)
+          ? error.errorCode
+          : undefined;
         responseComponents.body.errors = error.details || undefined;
         responseComponents.body.data = error.context;
 

@@ -38,10 +38,6 @@ const deleteCardSpec = validator.parse(`root {
   creator_reference string<trim|length:20>
 }`);
 
-const getCardQuerySpec = validator.parse(`root {
-  access_code? string<trim|length:6|matches:^[A-Za-z0-9]{6}$>
-}`);
-
 function stripMongoId(value) {
   if (!value) {
     return value;
@@ -106,7 +102,6 @@ module.exports = {
   CUSTOM_ERROR_CODES,
   createCardSpec,
   deleteCardSpec,
-  getCardQuerySpec,
   serializeCreatorCard,
   buildSlugBase,
   generateSlugSuffix,
