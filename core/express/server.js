@@ -247,11 +247,12 @@ function Server(serverConfig = {}) {
         responseComponents.body.message = error.isApplicationError
           ? error.message
           : 'Some error occured.';
-        responseComponents.body.code = responseErrorCodes.has(error.errorCode)
-          ? error.errorCode
-          : undefined;
         responseComponents.body.errors = error.details || undefined;
         responseComponents.body.data = error.context;
+
+        if (responseErrorCodes.has(error.errorCode)) {
+          responseComponents.body.code = error.errorCode;
+        }
 
         expressResponse.status(responseComponents.statusCode).json(responseComponents.body); // Todo: Add a callback config that can be used to handle this in a custom way.
       } finally {
