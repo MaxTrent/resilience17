@@ -16,10 +16,10 @@ const typeRegexString = h`
  (?:
    (?:
     (?:\s*\((?<POSSIBLE_VALUES>[a-zA-Z-$_0-9\/\.,:|]+)\))?
-    (?:\s*<(?<CONSTRAINTS>[a-zA-Z-$_0-9,!:@\.|\/\s+]+)>)?
+    (?:\s*<(?<CONSTRAINTS>[^>]+)>)?
    ) |
    (?:
-    (?:\s*<(?<CONSTRAINTS_ALT>[a-zA-Z-$_0-9,!:@\.|\/\s+]+)>)?
+    (?:\s*<(?<CONSTRAINTS_ALT>[^>]+)>)?
     (?:\s*\((?<POSSIBLE_VALUES_ALT>[a-zA-Z-$_0-9\/\.,:|]+)\))?
    )
  )?

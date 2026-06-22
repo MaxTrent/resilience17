@@ -54,6 +54,7 @@ function createStubObject(defaultData) {
 
   dataStubs.raw.default = {
     countDocuments: () => 0,
+    updateOne: () => ({ matchedCount: 1 }),
   };
 
   return dataStubs;

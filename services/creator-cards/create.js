@@ -11,47 +11,6 @@ const {
   generateSlugSuffix,
 } = require('./shared');
 
-function throwValidationError(field, message) {
-  throwAppError(message, 'SPCL_VALIDATION', {
-    details: {
-      [field]: message,
-      __$app_first_message: message,
-    },
-  });
-}
-
-function validateRegexDrivenFields(serviceData, validatedData) {
-  if (typeof serviceData.access_code !== 'undefined') {
-    if (
-      typeof serviceData.access_code !== 'string' ||
-      !/^[A-Za-z0-9]{6}$/.test(serviceData.access_code.trim())
-    ) {
-      throwValidationError(
-        'access_code',
-        'Passed access_code value should match ^[A-Za-z0-9]{6}$'
-      );
-    }
-  }
-
-  if (
-    typeof serviceData.slug !== 'undefined' &&
-    (typeof serviceData.slug !== 'string' || !/^[A-Za-z0-9_-]+$/.test(serviceData.slug.trim()))
-  ) {
-    throwValidationError('slug', 'Passed slug value should match ^[A-Za-z0-9_-]+$');
-  }
-
-  if (Array.isArray(serviceData.links)) {
-    serviceData.links.forEach((link, index) => {
-      if (typeof link?.url !== 'string' || !/^https?:\/\/.+$/.test(link.url.trim())) {
-        throwValidationError(
-          `links[${index}].url`,
-          `Passed links[${index}].url value should match ^https?://.+$`
-        );
-      }
-    });
-  }
-}
-
 async function findActiveCardBySlug(slug) {
   return CreatorCardRepository.findOne({
     query: {
@@ -128,7 +87,6 @@ async function persistCreatorCard(payload, options = {}) {
 
 async function createCreatorCard(serviceData) {
   const validatedData = validator.validate(serviceData, createCardSpec);
-  validateRegexDrivenFields(serviceData, validatedData);
   const hasAccessCode = typeof serviceData.access_code !== 'undefined';
   const accessCode = hasAccessCode ? serviceData.access_code.trim() : undefined;
 

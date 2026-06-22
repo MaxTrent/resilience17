@@ -370,7 +370,7 @@ describe('Creator Cards endpoints', () => {
     assert.strictEqual(response.data.code, 'AC04');
   });
 
-  it('returns 400 for malformed retrieval access_code via VSL', async () => {
+  it('returns AC04 for malformed retrieval access_code on an existing private card', async () => {
     const findOneConfig = CreatorCardStub.configureStubs({
       method: 'findOne',
       docConfig: createCard({ access_type: 'private', access_code: 'A1B2C3' }),
@@ -382,8 +382,8 @@ describe('Creator Cards endpoints', () => {
 
     findOneConfig.revert();
 
-    assert.strictEqual(response.statusCode, 400);
-    assert.strictEqual(response.data.code, undefined);
+    assert.strictEqual(response.statusCode, 403);
+    assert.strictEqual(response.data.code, 'AC04');
   });
 
   it('returns NF01 when a card is missing', async () => {
