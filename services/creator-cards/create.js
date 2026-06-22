@@ -40,9 +40,9 @@ function validateRegexDrivenFields(serviceData, validatedData) {
     throwValidationError('slug', 'Passed slug value should match ^[A-Za-z0-9_-]+$');
   }
 
-  if (Array.isArray(validatedData.links)) {
-    validatedData.links.forEach((link, index) => {
-      if (typeof link?.url !== 'string' || !/^https?:\/\/.+$/.test(link.url)) {
+  if (Array.isArray(serviceData.links)) {
+    serviceData.links.forEach((link, index) => {
+      if (typeof link?.url !== 'string' || !/^https?:\/\/.+$/.test(link.url.trim())) {
         throwValidationError(
           `links[${index}].url`,
           `Passed links[${index}].url value should match ^https?://.+$`
@@ -150,7 +150,18 @@ async function createCreatorCard(serviceData) {
     ...validatedData,
     access_type: validatedData.access_type || 'public',
   };
-  const hasClientProvidedSlug = !!payload.slug;
+  const hasClientProvidedSlug = typeof serviceData.slug !== 'undefined';
+
+  if (hasClientProvidedSlug) {
+    payload.slug = serviceData.slug.trim();
+  }
+
+  if (Array.isArray(serviceData.links)) {
+    payload.links = serviceData.links.map((link) => ({
+      title: link.title.trim(),
+      url: link.url.trim(),
+    }));
+  }
 
   if (!hasClientProvidedSlug) {
     payload.slug = await generateUniqueSlug(payload.title);
