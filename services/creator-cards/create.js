@@ -11,6 +11,47 @@ const {
   generateSlugSuffix,
 } = require('./shared');
 
+function throwValidationError(field, message) {
+  throwAppError(message, 'SPCL_VALIDATION', {
+    details: {
+      [field]: message,
+      __$app_first_message: message,
+    },
+  });
+}
+
+function validateRegexDrivenFields(serviceData, validatedData) {
+  if (typeof serviceData.access_code !== 'undefined') {
+    if (
+      typeof serviceData.access_code !== 'string' ||
+      !/^[A-Za-z0-9]{6}$/.test(serviceData.access_code.trim())
+    ) {
+      throwValidationError(
+        'access_code',
+        'Passed access_code value should match ^[A-Za-z0-9]{6}$'
+      );
+    }
+  }
+
+  if (
+    typeof serviceData.slug !== 'undefined' &&
+    (typeof serviceData.slug !== 'string' || !/^[A-Za-z0-9_-]+$/.test(serviceData.slug.trim()))
+  ) {
+    throwValidationError('slug', 'Passed slug value should match ^[A-Za-z0-9_-]+$');
+  }
+
+  if (Array.isArray(validatedData.links)) {
+    validatedData.links.forEach((link, index) => {
+      if (typeof link?.url !== 'string' || !/^https?:\/\/.+$/.test(link.url)) {
+        throwValidationError(
+          `links[${index}].url`,
+          `Passed links[${index}].url value should match ^https?://.+$`
+        );
+      }
+    });
+  }
+}
+
 async function findActiveCardBySlug(slug) {
   return CreatorCardRepository.findOne({
     query: {
@@ -87,18 +128,18 @@ async function persistCreatorCard(payload, options = {}) {
 
 async function createCreatorCard(serviceData) {
   const validatedData = validator.validate(serviceData, createCardSpec);
+  validateRegexDrivenFields(serviceData, validatedData);
+  const hasAccessCode = typeof serviceData.access_code !== 'undefined';
+  const accessCode = hasAccessCode ? serviceData.access_code.trim() : undefined;
 
-  if (validatedData.access_type === 'private' && !validatedData.access_code) {
+  if (validatedData.access_type === 'private' && !accessCode) {
     throwAppError(
       CreatorCardMessages.ACCESS_CODE_REQUIRED,
       CUSTOM_ERROR_CODES.ACCESS_CODE_REQUIRED
     );
   }
 
-  if (
-    (!validatedData.access_type || validatedData.access_type === 'public') &&
-    validatedData.access_code
-  ) {
+  if ((!validatedData.access_type || validatedData.access_type === 'public') && hasAccessCode) {
     throwAppError(
       CreatorCardMessages.ACCESS_CODE_FORBIDDEN,
       CUSTOM_ERROR_CODES.ACCESS_CODE_FORBIDDEN
@@ -117,7 +158,7 @@ async function createCreatorCard(serviceData) {
     await assertSlugIsAvailable(payload.slug);
   }
 
-  payload.access_code = payload.access_type === 'private' ? payload.access_code : null;
+  payload.access_code = payload.access_type === 'private' ? accessCode : null;
   payload.deleted = null;
 
   try {

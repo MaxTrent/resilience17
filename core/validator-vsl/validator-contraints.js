@@ -264,6 +264,24 @@ function isemail(value, arg, isNot, prop) {
   };
 }
 
+function matches(value, arg, isNot, prop) {
+  const regex = new RegExp(arg);
+  let result = regex.test(value);
+  if (isNot) {
+    result = !result;
+  }
+  const isSatisfied = !!result;
+  const notPrefix = isNot ? ' not ' : ' ';
+  if (Array.isArray(value)) {
+    return processArray(matches, value, [arg, isNot], prop);
+  }
+  return {
+    evaluatedValue: value,
+    isSatisfied,
+    errorMessage: `Passed ${prop} value ${value} should${notPrefix}match ${arg}`,
+  };
+}
+
 module.exports = {
   min,
   max,
@@ -280,4 +298,5 @@ module.exports = {
   uppercase,
   timestamptohex,
   isemail,
+  matches,
 };
